@@ -2,8 +2,19 @@ const fs = require('fs');
 const http = require('http');
 const url = require('url')
 const schedule = require('node-schedule');
+// import { ExchangeService, QuoationService } from "node-upbit";
+const node_upbit = require('node-upbit')
 const { off } = require('process');
 
+async function wonToEther(req,res){
+    const quoationService = new node_upbit.QuoationService();
+    const res2 = await quoationService.getTicker(["KRW-ETH"]);
+    const now_price = res2[0]
+    now_price = now_price["trade_price"] //1이더 = now_price원 => 1원 = 1/now_price
+
+    console.log(now_price)
+    
+}
 
 async function scheduling(req,res){
     var today = new Date()
@@ -21,6 +32,7 @@ async function scheduling(req,res){
 
     const job = schedule.scheduleJob(alertDate,function(){
         console.log("여기서 수행할거에요 돈을 보내주어라!!!!!!")
+        wonToEther()
     })
 }
 
