@@ -1,0 +1,17 @@
+{
+  "name": "solomon",
+  "version": "1.0.0",
+  "description": "network",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "smartcontract"
+  ],
+  "author": "mindaein, choijeehee",
+  "license": "ISC",
+  "dependencies": {
+    "web3": "^1.7.3"
+  }
+}

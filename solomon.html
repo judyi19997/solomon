@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <title>Solomon - 가격대법관</title>
+        <link rel="stylesheet" href="./solomon.css"/>
+    </head>
+    <body style="text-align: center;">
+        <div style="text-align:center;">
+                <h1>Solomon - 가격대법관</h1>
+            Solomon은 애매한 C2C 서비스로, 판매자가 판매가 산정에 어려움이 있을 때,
+            <br>
+            체결후 3일 뒤 이더리움 가격에 거래하는 시스템입니다.
+            <br>
+            <br>
+            <div>
+                <form id = "user">
+                    <!-- <input type="text" id="userAddress" placeholder="주소" size="42.5"> -->
+                    <input type="button" id="loginBtn" onclick=login() value="로그인">
+                    <h2>Account: <span class="showAccount"></span></h2>
+                </form>
+            </div>
+
+            <div>
+                <form id = "sell" >
+                    <input type="text" id="price" placeholder="가격">
+                    <input type="text" id="product" placeholder="상품">
+                    <button id="sellItem" type="button" onclick="addNewItem()">상품등록</button>
+                </form>
+            </div>
+            <br>
+            <hr width="50%">
+            <ul class="column-list" id="itemList" style="text-align: center;">
+            </ul>
+        </div>
+        <script src='web3.min.js'></script>
+        <script type = "text/javascript" src = "abiList.js"></script>
+        <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+        <script>
+            var loginBtn = $('#loginBtn');
+            var loginAddress = '';
+
+            var price = $('#price');
+            var product = $('#product');
+            var sellItemBtn = $('#sellItem');
+
+            var itemList = $('#itemList');
+            var itemArr = [];
+            renderCol();
+
+
+            // function login(){
+            //     loginAddress = String($('#userAddress').val());
+            //     alert(loginAddress+'으로 로그인하였습니다.');
+            // }
+            async function login(){
+
+                window.accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+                const showAccount = document.querySelector('.showAccount');
+                showAccount.innerHTML = accounts[0];
+                var abiobj = solomon
+               
+                var address = "0x59f0AF4476e6cBF588D8491f75eacDDb3496BA7d";
+                window.web3 = new Web3(window.ethereum);
+                contractInstance = await new window.web3.eth.Contract(abiobj, address);
+                loginAddress = accounts[0];
+                alert(loginAddress+'으로 로그인하였습니다.');
+            }
+
+            function getNow(){
+                var today = new Date();
+                var year = today.getFullYear();
+                var month = ('0' + (today.getMonth() + 1)).slice(-2);
+                var day = ('0' + today.getDate()).slice(-2);
+                var hours = ('0' + today.getHours()).slice(-2); 
+                var minutes = ('0' + today.getMinutes()).slice(-2);
+                var seconds = ('0' + today.getSeconds()).slice(-2); 
+
+                var timeString = hours + ':' + minutes  + ':' + seconds;
+
+                return year + '-' + month  + '-' + day+'  '+timeString;
+                
+            }
+
+            function addNewItem(){
+                if(loginAddress === ''){
+                    alert('로그인 해주십시오.');
+                }else{
+                    if (price == ''){
+                        alert('제목을 입력해주세요!');
+                    }else if(product === ''){
+                        alert('내용을 입력해주세요!')
+                    }else{
+                        var item = {
+                            seq: getLastSeq('items')+1, // 마지막 시퀀스 번호 +1 부여
+                            price: String(price.val()),
+                            product: String(product.val()),
+                            address: loginAddress,
+                            time: getNow(),
+                            isBuy: false,
+                            toadress: ''
+                        };
+                        // 배열에 삽입
+                        itemArr.push(item);
+
+                        // 입력창 초기화하고 포커스 
+                        price.val('').focus();
+                        product.val('');
+
+                        // 저장하고
+                        saveToStorage('items', itemArr);
+
+                        // 렌더링
+                        renderCol();
+                    }
+                }
+            }
+
+            function getItemTemplate(_seq, _product, _price, _address, _isBuy){
+                if(_isBuy === true){
+                    '<li style="list-style-type: none; background-color:#fffb8f;" class="column-item"><a class="column-item-anchor" style="background-color: bisque;"><p id="item">'+_product+'  '+_price+'원    '+_address+'    </p><button type="button" class="btn btn-buy" data-index="'+_seq+'">판매완료</button></a></li>'
+                }else {
+                    return '<li style="list-style-type: none; background-color:#fffb8f;" class="column-item"><a class="column-item-anchor" style="background-color: bisque;"><p id="item">'+_product+'  '+_price+'원    '+_address+'    </p><button type="button" class="btn btn-buy" data-index="'+_seq+'">구매</button></a></li>';
+                }
+            }
+
+            // get last sequence number from storage
+            function getLastSeq(key){
+                var storedItems = getFromStorage(key);
+                if (storedItems == null || storedItems.length == 0){
+                    return 0;
+                }else if(storedItems.length > 0){
+                    return storedItems.pop().seq;
+                }
+            }
+
+            // store array in storage
+            function saveToStorage(key, value){
+                localStorage.setItem(key, JSON.stringify(value));
+            }
+
+            // load item from storage
+            function getFromStorage(key){
+                var storedItem = localStorage.getItem(key);
+                if (storedItem == null){
+                    return null;
+                }else if (storedItem !== null){
+                    return JSON.parse(localStorage.getItem(key));
+                }
+            }
+
+            $(document).on('click', '.btn-buy', function(){
+                var index = $(this).attr('data-index');
+                for (var i=0; i<itemArr.length; i++){
+                    if (itemArr[i].seq == index && itemArr[i].isBuy !== true){
+                        $(this).html('판매완료일자 : '+getNow());
+                        alert(itemArr[i].address+'로부터 '+itemArr[i].product+'를 구매하였습니다.');
+                        // solomon.js로 데이터 변경 및 스마트 컨트랙트 코드 실행
+                        
+                        // storedItems[i].isBuy = true;
+                        // renderCol();
+                    }
+                }
+                saveToStorage('columns', columnArr);
+                renderCol();
+            })
+
+            function renderCol(){
+                itemList.html('');
+                var storedItems = getFromStorage('items');
+                if (storedItems !== null){
+                    itemArr = storedItems;
+                    itemArr.forEach(e => itemList.append(getItemTemplate(e.seq, e.product, e.price, e.address, e.isBuy)));
+                }
+            }
+            $(document).ready(function(){
+              renderCol();
+            })
+
+        </script>
+    </body>
+</html>
