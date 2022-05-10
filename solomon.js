@@ -1,13 +1,16 @@
 const fs = require('fs');
 const http = require('http');
 const url = require('url')
+const schedule = require('node-schedule');
 const { off } = require('process');
+
+
+
 
 async function gateWayPage(req, res){
     var fname = '.'+url.parse(req.url).pathname;
     console.log(fname)
     fs.readFile(fname, async(err, data) => {
-    
         if(err){
             res.writeHead(404,{'Contente-Type':'text/html'});
             return res.end("404 Not Found");

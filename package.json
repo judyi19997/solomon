@@ -12,6 +12,7 @@
   "author": "mindaein, choijeehee",
   "license": "ISC",
   "dependencies": {
+    "node-schedule": "^2.1.0",
     "web3": "^1.7.3"
   }
 }
