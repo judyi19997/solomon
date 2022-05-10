@@ -23,7 +23,7 @@
 
             <div>
                 <form id = "sell" >
-                    <input type="text" id="price" placeholder="가격(wei)">
+                    <input type="text" id="price" placeholder="가격">
                     <input type="text" id="product" placeholder="상품">
                     <button id="sellItem" type="button" onclick="addNewItem()">상품등록</button>
                 </form>
@@ -50,10 +50,6 @@
             renderCol();
 
 
-            // function login(){
-            //     loginAddress = String($('#userAddress').val());
-            //     alert(loginAddress+'으로 로그인하였습니다.');
-            // }
             async function login(){
 
                 window.accounts = await ethereum.request({ method: 'eth_requestAccounts' });
@@ -117,9 +113,9 @@
                 }
             }
 
-            function getItemTemplate(_seq, _product, _price, _address, _isBuy){
+            function getItemTemplate(_seq, _product, _price, _address, _isBuy, _time){
                 if(_isBuy === true){
-                    '<li style="list-style-type: none; background-color:#fffb8f;" class="column-item"><a class="column-item-anchor" style="background-color: bisque;"><p id="item">'+_product+'  '+_price+'원    '+_address+'    </p><button type="button" class="btn btn-buy" data-index="'+_seq+'">판매완료</button></a></li>'
+                    return '<li style="list-style-type: none; background-color:#ffc7c7;" class="column-item"><a class="column-item-anchor" style="background-color: bisque;"><p id="item">'+_product+'  '+_price+'원    '+_address+'    </p><button type="button" class="btn btn-buy" data-index="'+_seq+'">판매완료  '+_time+'</button></a></li>'
                 }else {
                     return '<li style="list-style-type: none; background-color:#fffb8f;" class="column-item"><a class="column-item-anchor" style="background-color: bisque;"><p id="item">'+_product+'  '+_price+'원    '+_address+'    </p><button type="button" class="btn btn-buy" data-index="'+_seq+'">구매</button></a></li>';
                 }
@@ -154,8 +150,12 @@
                 var index = $(this).attr('data-index');
                 for (var i=0; i<itemArr.length; i++){
                     if (itemArr[i].seq == index && itemArr[i].isBuy !== true){
-                        $(this).html('판매완료일자 : '+getNow());
+                        var time = getNow();
+                        $(this).html('판매완료일자 : '+time);
                         alert(itemArr[i].address+'로부터 '+itemArr[i].product+'를 구매하였습니다.');
+                        itemArr[i].toadress = loginAddress;
+                        itemArr[i].isBuy = true;
+                        itemArr[i].time = time;
                         // solomon.js로 데이터 변경 및 스마트 컨트랙트 코드 실행
                         try{
 
@@ -175,7 +175,7 @@
                         // renderCol();
                     }
                 }
-                saveToStorage('columns', columnArr);
+                saveToStorage('items', itemArr);
                 renderCol();
             })
 
@@ -184,7 +184,7 @@
                 var storedItems = getFromStorage('items');
                 if (storedItems !== null){
                     itemArr = storedItems;
-                    itemArr.forEach(e => itemList.append(getItemTemplate(e.seq, e.product, e.price, e.address, e.isBuy)));
+                    itemArr.forEach(e => itemList.append(getItemTemplate(e.seq, e.product, e.price, e.address, e.isBuy,e.time)));
                 }
             }
             $(document).ready(function(){
