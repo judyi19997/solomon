@@ -15,9 +15,8 @@
             <br>
             <div>
                 <form id = "user">
-                    <!-- <input type="text" id="userAddress" placeholder="주소" size="42.5"> -->
-                    <input type="button" id="loginBtn" onclick=login() value="로그인">
-                    <h2>Account: <span class="showAccount"></span></h2>
+                    <input type="text" id="userAddress" placeholder="주소" size="42.5">
+                    <button type="button" id="loginBtn" onclick="login()">로그인</button>
                 </form>
             </div>
 
@@ -33,13 +32,11 @@
             <ul class="column-list" id="itemList" style="text-align: center;">
             </ul>
         </div>
-        <script src='web3.min.js'></script>
-        <script type = "text/javascript" src = "abiList.js"></script>
         <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
         <script>
+            // localStorage.clear();
             var loginBtn = $('#loginBtn');
             var loginAddress = '';
-            var contractAddr = ''
 
             var price = $('#price');
             var product = $('#product');
@@ -48,6 +45,7 @@
             var itemList = $('#itemList');
             var itemArr = [];
             renderCol();
+
 
 
             async function login(){
@@ -61,6 +59,7 @@
                 window.web3 = new Web3(window.ethereum);
                 contractInstance = await new window.web3.eth.Contract(abiobj, contractAddr);
                 loginAddress = accounts[0];
+
                 alert(loginAddress+'으로 로그인하였습니다.');
             }
 
@@ -146,7 +145,7 @@
                 }
             }
 
-            $(document).on('click', '.btn-buy', async function(){
+            $(document).on('click', '.btn-buy', function(){
                 var index = $(this).attr('data-index');
                 for (var i=0; i<itemArr.length; i++){
                     if (itemArr[i].seq == index && itemArr[i].isBuy !== true){
@@ -157,22 +156,7 @@
                         itemArr[i].isBuy = true;
                         itemArr[i].time = time;
                         // solomon.js로 데이터 변경 및 스마트 컨트랙트 코드 실행
-                        try{
-
-                            constract = contractAddr
-                            weiValue = (itemArr[i].price)
-
-                            console.log(constract)
-                            console.log(loginAddress)
-                            console.log(weiValue)
-                            // let req = await contractInstance.methods.transfer_before(constract).send({from:loginAddress,value:weiValue})
-                            let value = await contractInstance.methods.transfer_before().send({from:accounts[0], value:weiValue});
-                        }catch(err){
-                            console.log(err)
-                        }
-                        
-                        // itemArr[i].isBuy = true;
-                        // renderCol();
+                        // storedItems[i].isBuy = true;
                     }
                 }
                 saveToStorage('items', itemArr);
@@ -184,7 +168,9 @@
                 var storedItems = getFromStorage('items');
                 if (storedItems !== null){
                     itemArr = storedItems;
+
                     itemArr.forEach(e => itemList.append(getItemTemplate(e.seq, e.product, e.price, e.address, e.isBuy,e.time)));
+
                 }
             }
             $(document).ready(function(){
