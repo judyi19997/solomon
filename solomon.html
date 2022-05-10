@@ -46,8 +46,20 @@
             var itemArr = [];
             renderCol();
 
-            function login(){
-                loginAddress = String($('#userAddress').val());
+
+
+            async function login(){
+
+                window.accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+                const showAccount = document.querySelector('.showAccount');
+                showAccount.innerHTML = accounts[0];
+                var abiobj = solomon
+               
+                contractAddr = "0xcA737704aCD02e6F9A4DD10e7751CdFFF55C1249";
+                window.web3 = new Web3(window.ethereum);
+                contractInstance = await new window.web3.eth.Contract(abiobj, contractAddr);
+                loginAddress = accounts[0];
+
                 alert(loginAddress+'으로 로그인하였습니다.');
             }
 
@@ -156,7 +168,9 @@
                 var storedItems = getFromStorage('items');
                 if (storedItems !== null){
                     itemArr = storedItems;
-                    itemArr.forEach(e => itemList.append(getItemTemplate(e.seq, e.product, e.price, e.address, e.isBuy, e.time)));
+
+                    itemArr.forEach(e => itemList.append(getItemTemplate(e.seq, e.product, e.price, e.address, e.isBuy,e.time)));
+
                 }
             }
             $(document).ready(function(){
