@@ -12,6 +12,7 @@
   "author": "mindaein, choijeehee",
   "license": "ISC",
   "dependencies": {
+    "firebase": "^9.8.1",
     "node-schedule": "^2.1.0",
     "node-upbit": "^1.1.0",
     "web3": "^1.7.3"
