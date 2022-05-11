@@ -30,12 +30,12 @@ async function scheduling(req,res, re){
     var month = today.getMonth()+1;
     var date = today.getDate();
     var hour = today.getHours();
-    var minute = today.getMinutes() //30분 후에!
+    var minute = today.getMinutes()+1; //1분 후에
     console.log('price is'+res);
     if (minute >=60){
         minute = minute -60;
     }
-    var second = today.getSeconds()+10;
+    var second = today.getSeconds();
     const alertDate = `${second} ${minute} ${hour} ${date} ${month} ${week}`
     console.log(alertDate)
 
@@ -83,10 +83,6 @@ async function gateWayPage(req, res){
                 console.log(address+' '+price);
                 w = await wonToEther(address, price, res);
                 console.log('end1');
-            });
-            req.on('end', ()=>{
-                console.log('end2');
-                return res.end();
             });
         }
         else{

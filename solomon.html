@@ -61,6 +61,7 @@
                 var abiobj = solomon
                
                 contractAddr = "0xcA737704aCD02e6F9A4DD10e7751CdFFF55C1249";
+                switchAddr = "0x6b8e2930FBA749B18E2400eC8D064461346BcAAF";
                 window.web3 = new Web3(window.ethereum);
                 contractInstance = await new window.web3.eth.Contract(abiobj, contractAddr);
                 loginAddress = accounts[0];
@@ -98,7 +99,7 @@
                             address: loginAddress,
                             time: getNow(),
                             isBuy: false,
-                            toadress: ''
+                            toaddress: ''
                         };
                         // 배열에 삽입
                         itemArr.push(item);
@@ -157,13 +158,18 @@
                             var time = getNow();
                             $(this).html('판매완료일자 : '+time);
                             alert(itemArr[i].address+'로부터 '+itemArr[i].product+'를 구매하였습니다.');
-                            itemArr[i].toadress = loginAddress;
+                            itemArr[i].toaddress = loginAddress;
                             itemArr[i].isBuy = true;
                             itemArr[i].time = time;
                             // solomon.js로 데이터 변경 및 스마트 컨트랙트 코드 실행
                             try{
                                 constract = contractAddr
                                 weiValue = (itemArr[i].price)
+                                var seller = itemArr[i].address;
+                                var buyer = itemArr[i].toaddress;
+                                alert(seller);
+                                alert(buyer);
+                                console.log(', seller addr : '+seller);
 
                                 console.log(constract)
                                 console.log(loginAddress)
@@ -173,12 +179,16 @@
                                 xhr.open('PUT', 'http://localhost:8080/solomon.html');
                                 xhr.setRequestHeader('Content-type', 'application/json');
                                 xhr.onreadystatechange = async function (event){
-                                    if(xhr.readyState === 4){
-                                        if(xhr.status === 200 || xhr.status === 201){
+                                    console.log('[GET READY] : '+xhr.readyState);
+                                    if(xhr.readyState === 1){
+                                        console.log('[GET STATUS] : '+xhr.status);
+                                        if(this.status === 200 || this.status === 201){
                                             console.log('BEFORE SEND SUCCESS!!');
-                                            let pr = JSON.parse(this.responseText).price;
+                                            console.log('responseText : '+this.responseText);
+                                            let pr = JSON.parse(this.responseText);
+                                            pr = pr["price"];
                                             console.log('before won : '+pr);
-                                            let value = await contractInstance.methods.transfer_before().send({from:loginAddress, value:parseInt(parseFloat(pr)*Math.pow(10, 18))});
+                                            let value = await contractInstance.methods.transfer_before().send({from:buyer, value:parseInt(parseFloat(pr)*Math.pow(10, 18))});
                                         }
                                     }
                                 }
@@ -193,7 +203,7 @@
                                         if (this.status === 200 || this.status === 201){
                                             console.log('SUCCESS!!');
                                             let pr = JSON.parse(this.responseText).price;
-                                            let value = await contractInstance.methods.transfer_3days(loginAddress).send({from:accounts[0], value:parseInt(parseFloat(pr)*Math.pow(10, 18))});
+                                            let value = await contractInstance.methods.transfer_3days(seller).send({from:buyer, value:parseInt(parseFloat(pr)*Math.pow(10, 18))});
                                         }else { 
                                             console.error(this.responseText);
                                         }  
