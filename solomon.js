@@ -49,15 +49,12 @@ async function gateWayPage(req, res){
     var fname = '.'+url.parse(req.url).pathname;
     console.log(fname)
     fs.readFile(fname, async(err, data) => {
-
         if(req.method === 'POST'){   
             if(err){
                 res.writeHead(404,{'Contente-Type':'text/html'});
                 return res.end("404 Not Found");
             }
             var w;
-            res.writeHead(200,{'Contente-Type':'text/html'})
-            res.write(data);
             var address;
             var price;
             await req.on('data',async(data) => { 
@@ -69,9 +66,30 @@ async function gateWayPage(req, res){
             });
             req.on('end', ()=>{
                 console.log('end2');
-                return res.end(w);
+                return res.end();
             });
-        }else{
+        }else if(req.method === 'PUT'){
+            if(err){
+                res.writeHead(404,{'Contente-Type':'text/html'});
+                return res.end("404 Not Found");
+            }
+            var w;
+            var address;
+            var price;
+            console.log('PUT method start!');
+            await req.on('data',async(data) => { 
+                address = await JSON.parse(data).toadress;
+                price = await JSON.parse(data).price;
+                console.log(address+' '+price);
+                w = await wonToEther(address, price, res);
+                console.log('end1');
+            });
+            req.on('end', ()=>{
+                console.log('end2');
+                return res.end();
+            });
+        }
+        else{
             console.log('others');
             if(err){
                 res.writeHead(404,{'Contente-Type':'text/html'});

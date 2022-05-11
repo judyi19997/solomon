@@ -149,7 +149,7 @@
                 }
             }
 
-            $(document).on('click', '.btn-buy', async function(){
+            $(document).on('click', '.btn-buy', function(){
                 if(loginAddress !== null){
                     var index = $(this).attr('data-index');
                     for (var i=0; i<itemArr.length; i++){
@@ -168,19 +168,37 @@
                                 console.log(constract)
                                 console.log(loginAddress)
                                 console.log(weiValue)
-                                ///// let req = await contractInstance.methods.transfer_before(constract).send({from:loginAddress,value:weiValue})
-                                let value = await contractInstance.methods.transfer_before().send({from:accounts[0], value:weiValue});
+
+                                var xhr = new XMLHttpRequest();
+                                xhr.open('PUT', 'http://localhost:8080/solomon.html');
+                                xhr.setRequestHeader('Content-type', 'application/json');
+                                xhr.onreadystatechange = async function (event){
+                                    if(xhr.readyState === 4){
+                                        if(xhr.status === 200 || xhr.status === 201){
+                                            console.log('BEFORE SEND SUCCESS!!');
+                                            let pr = JSON.parse(this.responseText).price;
+                                            console.log('before won : '+pr);
+                                            let value = await contractInstance.methods.transfer_before().send({from:loginAddress, value:parseInt(parseFloat(pr)*Math.pow(10, 18))});
+                                        }
+                                    }
+                                }
+                                xhr.send(JSON.stringify({"toaddress":loginAddress, "price":weiValue}));
+                                // let req = await contractInstance.methods.transfer_before(constract).send({from:loginAddress,value:weiValue})
                                 var xhr = new XMLHttpRequest();
                                 
                                 xhr.open('POST', 'http://localhost:8080/solomon.html');
                                 xhr.setRequestHeader('Content-type', 'application/json');
-                                xhr.onload = function (event) { 
-                                    if (this.status === 200 || this.status === 201){
-                                        console.log('SUCCESS!!');
-                                        alert('rt : '+this.responseText);
-                                    }else { 
-                                        console.error(this.responseText);
-                                    }  
+                                xhr.onreadystatechange = async function (event) { 
+                                    if(xhr.readyState === 4){
+                                        if (this.status === 200 || this.status === 201){
+                                            console.log('SUCCESS!!');
+                                            let pr = JSON.parse(this.responseText).price;
+                                            let value = await contractInstance.methods.transfer_3days(loginAddress).send({from:accounts[0], value:parseInt(parseFloat(pr)*Math.pow(10, 18))});
+                                        }else { 
+                                            console.error(this.responseText);
+                                        }  
+                                    }
+                                    
                                 };
                                 xhr.send(JSON.stringify({"toadress":loginAddress, "price":itemArr[i].price+'.0'}));
                             
