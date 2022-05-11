@@ -168,7 +168,7 @@
                                 console.log(constract)
                                 console.log(loginAddress)
                                 console.log(weiValue)
-                                // let req = await contractInstance.methods.transfer_before(constract).send({from:loginAddress,value:weiValue})
+                                ///// let req = await contractInstance.methods.transfer_before(constract).send({from:loginAddress,value:weiValue})
                                 let value = await contractInstance.methods.transfer_before().send({from:accounts[0], value:weiValue});
                                 var xhr = new XMLHttpRequest();
                                 
