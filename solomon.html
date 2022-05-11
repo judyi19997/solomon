@@ -13,10 +13,14 @@
             체결후 3일 뒤 이더리움 가격에 거래하는 시스템입니다.
             <br>
             <br>
+            <a href="https://youtu.be/Vm0F13P2yU0"> 시연 영상</a>
+            <br>
+            <br>
             <div>
                 <form id = "user">
-                    <input type="text" id="userAddress" placeholder="주소" size="42.5">
-                    <button type="button" id="loginBtn" onclick="login()">로그인</button>
+                    <!-- <input type="text" id="userAddress" placeholder="주소" size="42.5"> -->
+                    <input type="button" id="loginBtn" onclick=login() value="로그인">
+                    <h2>Account: <span class="showAccount"></span></h2>
                 </form>
             </div>
 
@@ -32,11 +36,13 @@
             <ul class="column-list" id="itemList" style="text-align: center;">
             </ul>
         </div>
+        <script src='web3.min.js'></script>
+        <script type = "text/javascript" src = "abiList.js"></script>
         <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
         <script>
-            // localStorage.clear();
             var loginBtn = $('#loginBtn');
             var loginAddress = '';
+            var contractAddr = ''
 
             var price = $('#price');
             var product = $('#product');
@@ -45,7 +51,6 @@
             var itemList = $('#itemList');
             var itemArr = [];
             renderCol();
-
 
 
             async function login(){
@@ -59,7 +64,6 @@
                 window.web3 = new Web3(window.ethereum);
                 contractInstance = await new window.web3.eth.Contract(abiobj, contractAddr);
                 loginAddress = accounts[0];
-
                 alert(loginAddress+'으로 로그인하였습니다.');
             }
 
@@ -82,10 +86,10 @@
                 if(loginAddress === ''){
                     alert('로그인 해주십시오.');
                 }else{
-                    if (price == ''){
-                        alert('제목을 입력해주세요!');
-                    }else if(product === ''){
-                        alert('내용을 입력해주세요!')
+                    if (price.val() === 0){
+                        alert('가격을 입력해주세요!');
+                    }else if(product.val().length === 0){
+                        alert('상품을 입력해주세요!')
                     }else{
                         var item = {
                             seq: getLastSeq('items')+1, // 마지막 시퀀스 번호 +1 부여
@@ -145,22 +149,50 @@
                 }
             }
 
-            $(document).on('click', '.btn-buy', function(){
-                var index = $(this).attr('data-index');
-                for (var i=0; i<itemArr.length; i++){
-                    if (itemArr[i].seq == index && itemArr[i].isBuy !== true){
-                        var time = getNow();
-                        $(this).html('판매완료일자 : '+time);
-                        alert(itemArr[i].address+'로부터 '+itemArr[i].product+'를 구매하였습니다.');
-                        itemArr[i].toadress = loginAddress;
-                        itemArr[i].isBuy = true;
-                        itemArr[i].time = time;
-                        // solomon.js로 데이터 변경 및 스마트 컨트랙트 코드 실행
-                        // storedItems[i].isBuy = true;
+            $(document).on('click', '.btn-buy', async function(){
+                if(loginAddress !== null){
+                    var index = $(this).attr('data-index');
+                    for (var i=0; i<itemArr.length; i++){
+                        if (itemArr[i].seq == index && itemArr[i].isBuy !== true){
+                            var time = getNow();
+                            $(this).html('판매완료일자 : '+time);
+                            alert(itemArr[i].address+'로부터 '+itemArr[i].product+'를 구매하였습니다.');
+                            itemArr[i].toadress = loginAddress;
+                            itemArr[i].isBuy = true;
+                            itemArr[i].time = time;
+                            // solomon.js로 데이터 변경 및 스마트 컨트랙트 코드 실행
+                            try{
+                                constract = contractAddr
+                                weiValue = (itemArr[i].price)
+
+                                console.log(constract)
+                                console.log(loginAddress)
+                                console.log(weiValue)
+                                // let req = await contractInstance.methods.transfer_before(constract).send({from:loginAddress,value:weiValue})
+                                let value = await contractInstance.methods.transfer_before().send({from:accounts[0], value:weiValue});
+                                var xhr = new XMLHttpRequest();
+                                
+                                xhr.open('POST', 'http://localhost:8080/solomon.html');
+                                xhr.setRequestHeader('Content-type', 'application/json');
+                                xhr.onload = function (event) { 
+                                    if (this.status === 200 || this.status === 201){
+                                        console.log('SUCCESS!!');
+                                        alert('rt : '+this.responseText);
+                                    }else { 
+                                        console.error(this.responseText);
+                                    }  
+                                };
+                                xhr.send(JSON.stringify({"toadress":loginAddress, "price":itemArr[i].price+'.0'}));
+                            
+                            }catch(err){
+                                console.log(err)
+                            }
+                        }
                     }
+                    saveToStorage('items', itemArr);
+                    renderCol();
                 }
-                saveToStorage('items', itemArr);
-                renderCol();
+                
             })
 
             function renderCol(){
@@ -168,9 +200,7 @@
                 var storedItems = getFromStorage('items');
                 if (storedItems !== null){
                     itemArr = storedItems;
-
                     itemArr.forEach(e => itemList.append(getItemTemplate(e.seq, e.product, e.price, e.address, e.isBuy,e.time)));
-
                 }
             }
             $(document).ready(function(){
@@ -178,5 +208,6 @@
             })
 
         </script>
+        
     </body>
 </html>
